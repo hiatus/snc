@@ -31,21 +31,21 @@ struct snc_opts {
 
 const char banner[] =
 "snc [options] [host]? [port]\n"
-"    -h            this\n"
-"    -v            verbosity\n"
-"    -n            disable DNS\n"
-"    -f            fork before connecting\n"
-"    -r            set terminal to raw mode\n"
-"    -l            listen until a client authenticates\n\n"
+"    -h           this\n"
+"    -v           verbosity\n"
+"    -n           disable DNS\n"
+"    -f           fork before connecting\n"
+"    -r           set terminal to raw mode\n"
+"    -l           listen until a client authenticates\n\n"
 
-"    -e [args]     execute [args]\n"
-"    -E [args]     execute [args] in a TTY\n"
-"    -d [delim]    delimiter for [args]\n"
-"    -k [pass]     use [pass] as AES key\n"
-"    -K [file]     use [file] as AES key\n"
-"    -i [file]     read input from [file]\n"
-"    -o [file]     write output to [file]\n"
-"    -w [secs]     idle connection timeout\n\n"
+"    -e [args]    execute [args]\n"
+"    -E [args]    execute [args] in a TTY\n"
+"    -d [char]    delimiter for [args]\n"
+"    -k [pass]    use [pass] as AES key\n"
+"    -K [file]    use [file] as AES key\n"
+"    -i [file]    read input from [file]\n"
+"    -o [file]    write output to [file]\n"
+"    -w [secs]    idle connection timeout\n\n"
 
 "    If [host] is not provided, listen on [port]\n";
 
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 			case 'd':
 				if (strlen(optarg) != 1) {
 					ret = SNC_EARGV;
-					snc_err("[delim] must be a single character\n");
+					snc_err("The delimiter must be a single character\n");
 
 					goto close_io;
 				}
