@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 
 				if (access(opts.argv[0], F_OK | X_OK)) {
 					ret = SNC_EARGV;
-					snc_err_fmt("'%s' is not executable", opts.argv[0]);
+					snc_err_fmt("'%s' is not executable\n", opts.argv[0]);
 
 					goto close_io;
 				}
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 				if (access(opts.argv[0], F_OK | X_OK)) {
 					ret = SNC_EARGV;
-					snc_err_fmt("'%s' is not executable", opts.argv[0]);
+					snc_err_fmt("'%s' is not executable\n", opts.argv[0]);
 
 					goto close_io;
 				}
