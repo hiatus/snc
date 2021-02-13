@@ -320,13 +320,13 @@ int async_io(struct conn_info *conn)
 
 		if (infds[0].revents & POLLIN && outfds[1].revents & POLLOUT) {
 			// Receive header
-			ret = _recvall(conn->sock, &pkt.hdr, NET_HDR_SIZE);
+			ret = _recvall(conn->sock, &pkt.hdr, sizeof(struct snc_header));
 
-			if (ret != NET_HDR_SIZE)
+			if (ret != sizeof(struct snc_header))
 				goto out_recv;
 
-			conn->recv_bytes += NET_HDR_SIZE;
-			aes_cbc_decrypt(&conn->dctx, &pkt.hdr, NET_HDR_SIZE);
+			conn->recv_bytes += sizeof(struct snc_header);
+			aes_cbc_decrypt(&conn->dctx, &pkt.hdr, sizeof(struct snc_header));
 
 			pkt.hdr.size  = ntohl(pkt.hdr.size);
 			pkt.hdr.crc32 = ntohl(pkt.hdr.crc32);
@@ -363,10 +363,10 @@ int async_io(struct conn_info *conn)
 			
 			len = AES_MSG_SIZE(ret);
 
-			aes_cbc_encrypt(&conn->ectx, &pkt.hdr, NET_HDR_SIZE);
+			aes_cbc_encrypt(&conn->ectx, &pkt.hdr, sizeof(struct snc_header));
 			aes_cbc_encrypt(&conn->ectx, pkt.data, len);
 
-			len += NET_HDR_SIZE;
+			len += sizeof(struct snc_header);
 
 			// Send packet
 			ret = _sendall(conn->sock, &pkt, len);

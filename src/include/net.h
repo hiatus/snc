@@ -12,7 +12,6 @@
 #define NET_BUFF_MAX 32768
 
 #define NET_CLG_SIZE     AES_BLK_SIZE
-#define NET_HDR_SIZE     sizeof(struct snc_header)
 #define NET_HDR_PAD_SIZE (AES_BLK_SIZE - sizeof(uint32_t) - sizeof(uint32_t))
 
 // AES_BLK_SIZE bytes
