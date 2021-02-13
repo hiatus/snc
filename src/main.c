@@ -409,6 +409,8 @@ conn:
 		else
 			(srv.sock) ? snc_perr("srv_auth") : snc_perr("cli_auth");
 
+		usleep(SNC_TRY_INT);
+
 		if (srv.sock && opts.persist) {
 			close(conn->sock);
 
