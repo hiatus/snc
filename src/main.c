@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 
 	if (! srv.port && opts.persist) {
 		ret = SNC_EARGV;
-		snc_err("Option 'l' makes no sense as a client\n");
+		snc_err("Option 'l' makes no sense in client mode\n");
 
 		goto close_io;
 	}
