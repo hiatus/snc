@@ -13,21 +13,20 @@ Usage
 -----
 ```
 snc [options] [host]? [port]
-	-h           this
-	-v           verbosity
-	-n           disable DNS
-	-f           fork before connecting
-	-r           set terminal to raw mode
-	-l           listen until a client authenticates
-
-	-e [args]    execute [args]
-	-E [args]    execute [args] in a TTY
-	-d [char]    delimiter for [args]
-	-k [pass]    use [pass] as AES key
-	-K [file]    use [file] as AES key
-	-i [file]    read input from [file]
-	-o [file]    write output to [file]
-	-w [secs]    idle connection timeout
+	-h           This
+	-v           Enable runtime messages
+	-n           Disable DNS resolution
+	-f           fork prior to connecting
+	-r           set terminal to raw mode prior to starting IO
+	-e [args]    Execute [args] and use it's IO
+	-E [args]    Execute [args] in a PTY and use it's IO
+	-d [char]    Use [char] as string delimiter for [args]
+	-k [pass]    Use the string [pass] as AES key
+	-K [file]    Use the file [file] as AES key
+	-i [file]    Read input from [file] instead of stdin
+	-o [file]    Write output to [file] instead of stdout
+	-w [secs]    Set a timeout in [secs] for idle connections
+	-a [num]     Allow [num] authentication attempts (use 0 for no limit)
 
 	If [host] is not provided, listen on [port]
 ```
