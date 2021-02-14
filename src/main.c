@@ -19,9 +19,9 @@ struct snc_opts {
 	bool fork;
 	bool verbose;
 	bool use_dns;
-	bool persist;
 
 	size_t argc;
+	size_t attempts;
 
 	char delim[2];
 	char *argv [SNC_ARG_MAX + 1];
@@ -29,25 +29,54 @@ struct snc_opts {
 	uint8_t key[AES_KEY_SIZE];
 };
 
-const char banner[] =
+static const char banner[] =
 "snc [options] [host]? [port]\n"
-"    -h           this\n"
-"    -v           verbosity\n"
-"    -n           disable DNS\n"
-"    -f           fork before connecting\n"
-"    -r           set terminal to raw mode\n"
-"    -l           listen until a client authenticates\n\n"
-
-"    -e [args]    execute [args]\n"
-"    -E [args]    execute [args] in a TTY\n"
-"    -d [char]    delimiter for [args]\n"
-"    -k [pass]    use [pass] as AES key\n"
-"    -K [file]    use [file] as AES key\n"
-"    -i [file]    read input from [file]\n"
-"    -o [file]    write output to [file]\n"
-"    -w [secs]    idle connection timeout\n\n"
+"    -h           This\n"
+"    -v           Enable runtime messages\n"
+"    -n           Disable DNS resolution\n"
+"    -f           fork prior to connecting\n"
+"    -r           set terminal to raw mode prior to starting IO\n"
+"    -e [args]    Execute [args] and use it's IO\n"
+"    -E [args]    Execute [args] in a PTY and use it's IO\n"
+"    -d [char]    Use [char] as string delimiter for [args]\n"
+"    -k [pass]    Use the string [pass] as AES key\n"
+"    -K [file]    Use the file [file] as AES key\n"
+"    -i [file]    Read input from [file] instead of stdin\n"
+"    -o [file]    Write output to [file] instead of stdout\n"
+"    -w [secs]    Set a timeout in [secs] for idle connections\n"
+"    -a [num]     Allow [num] authentication attempts (use 0 for no limit)\n\n"
 
 "    If [host] is not provided, listen on [port]\n";
+
+static struct snc_opts opts = {
+	.argc = 0,
+	.attempts = SNC_TRY_DEF,
+
+	.tty = false,
+	.raw = false,
+	.fork = false,
+	.use_dns = true,
+	.verbose = false,
+};
+
+static struct srv_info srv = {
+	.sock = 0,
+	.port = 0,
+
+	.conn = {
+		.sock = 0,
+		.port = 0,
+
+		.timeout = 0,
+		.recv_bytes = 0,
+		.send_bytes = 0,
+
+		.fdin  = STDIN_FILENO,
+		.fdout = STDOUT_FILENO
+	}
+};
+
+static struct conn_info *conn = &srv.conn;
 
 // Bionic does not provide pthread_cancel
 #if defined(__ANDROID__)
@@ -87,6 +116,57 @@ static int _parse_argv(char **argv, char *cmd, const char *delim)
 	return argc;
 }
 
+// Abstract away connection and authentication
+static int _snc_conn_auth(void)
+{
+	int ret;
+
+	// Initialize connection
+	if (opts.verbose) {
+		if (srv.sock)
+			snc_log_fmt("Listening on port %i\n", srv.port);
+		else
+			snc_log_fmt("Connecting to %s:%i\n", conn->addr, conn->port);
+	}
+
+	if ((ret = srv.sock ? srv_conn(&srv) : cli_conn(conn)) != 0) {
+		(srv.sock) ? snc_perr("srv_conn") : snc_perr("cli_conn");
+		return ret;
+	}
+
+	if (opts.verbose) {
+		if (! srv.sock)
+			snc_log("Connected\n");
+		else
+			snc_log_fmt("Connection from %s:%i\n", conn->addr, conn->port);
+	}
+
+	ret = srv.sock ? srv_auth(conn, opts.key) : cli_auth(conn, opts.key);
+
+	if (ret != 0) {
+		if (ret == SNC_EAUTH) {
+			(srv.sock) ?
+				snc_err("srv_auth: key mismatch\n") :
+				snc_err("cli_auth: key mismatch\n") ;
+		}
+		else
+		if (ret == SNC_ESYNC) {
+			(srv.sock) ?
+				snc_err("srv_auth: data asynchrony\n") :
+				snc_err("cli_auth: data asynchrony\n") ;
+		}
+		else
+			(srv.sock) ? snc_perr("srv_auth") : snc_perr("cli_auth");
+
+		return ret;
+	}
+
+	if (opts.verbose)
+		snc_log("Authenticated\n");
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	int opt;
@@ -96,36 +176,6 @@ int main(int argc, char **argv)
 
 	FILE *in = stdin;
 	FILE *out = stdout;
-
-	struct snc_opts opts = {
-		.argc = 0,
-
-		.tty = false,
-		.raw = false,
-		.fork = false,
-		.use_dns = true,
-		.verbose = false,
-		.persist = false
-	};
-
-	struct srv_info srv = {
-		.sock = 0,
-		.port = 0,
-
-		.conn = {
-			.sock = 0,
-			.port = 0,
-
-			.timeout = 0,
-			.recv_bytes = 0,
-			.send_bytes = 0,
-
-			.fdin  = fileno(in),
-			.fdout = fileno(out)
-		}
-	};
-
-	struct conn_info *conn = &srv.conn;
 
 	struct io_handler_info iohi = {
 		.ret = 0,
@@ -149,7 +199,7 @@ int main(int argc, char **argv)
 	memset(conn->addr, 0x00, NET_IPV4_MAX + 1);
 
 	// Parse arguments
-	while ((opt = getopt(argc, argv, ":hvnfrle:E:d:k:K:i:o:w:")) != -1) {
+	while ((opt = getopt(argc, argv, ":hvnfre:E:d:k:K:i:o:w:a:")) != -1) {
 		switch (opt) {
 			case 'h':
 				ret = 0;
@@ -171,10 +221,6 @@ int main(int argc, char **argv)
 
 			case 'r':
 				opts.raw = true;
-				break;
-
-			case 'l':
-				opts.persist = true;
 				break;
 
 			case 'e':
@@ -278,6 +324,16 @@ int main(int argc, char **argv)
 
 				break;
 
+			case 'a':
+				if (! (opts.attempts = (size_t)strtoul(optarg, NULL, 10))) {
+					ret = SNC_EARGV;
+					snc_err_fmt("Invalid attempt limit: '%s'\n", optarg);
+
+					goto close_io;
+				}
+
+				break;
+
 			case ':':
 				ret = SNC_EARGV;
 				snc_err_fmt("Option '%c' requires an argument\n", optopt);
@@ -343,9 +399,9 @@ int main(int argc, char **argv)
 		goto close_io;
 	}
 
-	if (! srv.port && opts.persist) {
+	if (! srv.port && opts.attempts != SNC_TRY_DEF) {
 		ret = SNC_EARGV;
-		snc_err("Option 'l' makes no sense in client mode\n");
+		snc_err("Option 'a' makes no sense in client mode\n");
 
 		goto close_io;
 	}
@@ -371,60 +427,29 @@ int main(int argc, char **argv)
 		goto close_io;
 	}
 
-conn:
 	// Initialize connection
-	if (opts.verbose) {
-		if (srv.sock)
-			snc_log_fmt("Listening on port %i\n", srv.port);
+	while ((ret = _snc_conn_auth()) != 0) {
+		if (ret == SNC_ECONN)
+			goto close_io;
 		else
-			snc_log_fmt("Connecting to %s:%i\n", conn->addr, conn->port);
-	}
-
-	if ((ret = srv.sock ? srv_conn(&srv) : cli_conn(conn)) != 0) {
-		(srv.sock) ? snc_perr("srv_conn") : snc_perr("cli_conn");
-		goto close_io;
-	}
-
-	if (opts.verbose) {
-		if (! srv.sock)
-			snc_log("Connected\n");
-		else
-			snc_log_fmt("Connection from %s:%i\n", conn->addr, conn->port);
-	}
-
-	ret = srv.sock ? srv_auth(conn, opts.key) : cli_auth(conn, opts.key);
-
-	if (ret != 0) {
 		if (ret == SNC_EAUTH) {
-			(srv.sock) ?
-				snc_err("srv_auth: key mismatch\n") :
-				snc_err("cli_auth: key mismatch\n") ;
-		}
-		else
-		if (ret == SNC_ESYNC) {
-			(srv.sock) ?
-				snc_err("srv_auth: data asynchrony\n") :
-				snc_err("cli_auth: data asynchrony\n") ;
-		}
-		else
-			(srv.sock) ? snc_perr("srv_auth") : snc_perr("cli_auth");
+			usleep(SNC_TRY_INT);
 
-		usleep(SNC_TRY_INT);
+			if (srv.sock) {
+				close(conn->sock);
 
-		if (srv.sock && opts.persist) {
-			close(conn->sock);
+				if (! --opts.attempts)
+					goto print_io;
 
-			if (opts.verbose)
-				fputc('\n', stderr);
+				if (opts.verbose)
+					fputc('\n', stderr);
 
-			goto conn;
+				continue;
+			}
 		}
 
 		goto print_io;
 	}
-
-	if (opts.verbose)
-		snc_log("Authenticated\n");
 
 	if (opts.argc) {
 		// Setup process IO

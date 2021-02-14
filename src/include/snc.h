@@ -16,6 +16,7 @@
 
 #define SNC_ARG_MAX 16
 #define SNC_KEY_MAX 4096
+#define SNC_TRY_DEF 1
 #define SNC_TRY_INT 1000000
 
 #define SNC_KEY_MASK '*'
