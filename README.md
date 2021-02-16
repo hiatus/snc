@@ -16,8 +16,8 @@ snc [options] [host]? [port]
 	-h           This
 	-v           Enable runtime messages
 	-n           Disable DNS resolution
-	-f           fork prior to connecting
-	-r           set terminal to raw mode prior to starting IO
+	-f           Fork prior to connecting
+	-r           Set terminal to raw mode prior to starting IO
 	-e [args]    Execute [args] and use it's IO
 	-E [args]    Execute [args] in a PTY and use it's IO
 	-d [char]    Use [char] as string delimiter for [args]
