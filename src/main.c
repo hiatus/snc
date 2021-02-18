@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 				break;
 
 			case 'w':
-				if (! (conn->timeout = (size_t)strtoul(optarg, NULL, 10))) {
+				if (! (conn->timeout = strtoul(optarg, NULL, 10))) {
 					ret = SNC_EARGV;
 					snc_err_fmt("Invalid timeout: '%s'\n", optarg);
 
@@ -325,7 +325,7 @@ int main(int argc, char **argv)
 				break;
 
 			case 'a':
-				if (! (opts.attempts = (size_t)strtoul(optarg, NULL, 10))) {
+				if (! (opts.attempts = strtoul(optarg, NULL, 10))) {
 					ret = SNC_EARGV;
 					snc_err_fmt("Invalid attempt limit: '%s'\n", optarg);
 
