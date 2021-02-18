@@ -413,7 +413,7 @@ int main(int argc, char **argv)
 		}
 		else
 		if (pid)
-			exit(0);
+			_exit(0);
 
 		if ((pid = setsid()) < 0) {
 			snc_perr("setsid");
