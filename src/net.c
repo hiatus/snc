@@ -15,7 +15,6 @@
 #include <sys/socket.h>
 #include <sys/random.h>
 
-#define AES_MSG_SIZE(clen) (clen + AES_PAD_SIZE(clen))
 #define AES_PAD_SIZE(mlen) (AES_BLK_SIZE - (mlen & (AES_BLK_SIZE - 1)))
 
 static struct snc_packet pkt;
@@ -331,7 +330,7 @@ int async_io(struct conn_info *conn)
 			pkt.hdr.size  = ntohl(pkt.hdr.size);
 			pkt.hdr.crc32 = ntohl(pkt.hdr.crc32);
 
-			len = AES_MSG_SIZE(pkt.hdr.size);
+			len = pkt.hdr.size + AES_PAD_SIZE(pkt.hdr.size);
 
 			// Receive packet data
 			ret = _recvall(conn->sock, pkt.data, len);
@@ -361,7 +360,7 @@ int async_io(struct conn_info *conn)
 
 			memset(&pkt.data[ret], 0x00, AES_PAD_SIZE(ret));
 			
-			len = AES_MSG_SIZE(ret);
+			len = ret + AES_PAD_SIZE(ret);
 
 			aes_cbc_encrypt(&conn->ectx, &pkt.hdr, sizeof(struct snc_header));
 			aes_cbc_encrypt(&conn->ectx, pkt.data, len);
