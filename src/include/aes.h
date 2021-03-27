@@ -34,6 +34,9 @@
 
 #endif
 
+// Calculate AES padding length
+#define AES_PAD_SIZE(len) (-(size_t)(len) & (AES_BLK_SIZE - 1))
+
 struct aes_ctx {
 	uint8_t iv[AES_BLK_SIZE];
 	uint8_t round_key[AES_KEY_EXPD_SIZE];

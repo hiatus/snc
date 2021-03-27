@@ -15,8 +15,6 @@
 #include <sys/socket.h>
 #include <sys/random.h>
 
-#define AES_PAD_SIZE(mlen) (AES_BLK_SIZE - (mlen & (AES_BLK_SIZE - 1)))
-
 static struct snc_packet pkt;
 
 static ssize_t _recvall(int sock, void *buffer, size_t len)
