@@ -36,9 +36,9 @@ static const char banner[] =
 "    -n           Disable DNS resolution\n"
 "    -f           Fork prior to connecting\n"
 "    -r           Set terminal to raw mode prior to starting IO\n"
-"    -e [args]    Execute [args] and redirect IO to/from it\n"
-"    -E [args]    Execute [args] in a PTY redirect IO to/from it\n"
-"    -d [char]    Use [char] as string delimiter for [args]\n"
+"    -e [argv]    Execute [argv] and redirect IO to/from it\n"
+"    -E [argv]    Execute [argv] in a PTY redirect IO to/from it\n"
+"    -d [char]    Use [char] as string delimiter for [argv]\n"
 "    -k [pass]    Use the string [pass] as AES key\n"
 "    -K [file]    Use the file [file] as AES key\n"
 "    -i [file]    Read input from [file] instead of stdin\n"
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 
 				if (! opts.argc) {
 					ret = SNC_EARGV;
-					snc_err_fmt("Failed to parse [args]: '%s'\n", optarg);
+					snc_err_fmt("Failed to parse [argv]: '%s'\n", optarg);
 
 					goto close_io;
 				}
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
 
 				if (! opts.argc) {
 					ret = SNC_EARGV;
-					snc_err_fmt("Failed to parse [args]: '%s'\n", optarg);
+					snc_err_fmt("Failed to parse [argv]: '%s'\n", optarg);
 
 					goto close_io;
 				}

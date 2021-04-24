@@ -18,9 +18,9 @@ snc [options] [host]? [port]
 	-n           Disable DNS resolution
 	-f           Fork prior to connecting
 	-r           Set terminal to raw mode prior to starting IO
-	-e [args]    Execute [args] and redirect IO to/from it
-	-E [args]    Execute [args] in a PTY and redirect IO to/from it
-	-d [char]    Use [char] as string delimiter for [args]
+	-e [argv]    Execute [argv] and redirect IO to/from it
+	-E [argv]    Execute [argv] in a PTY and redirect IO to/from it
+	-d [char]    Use [char] as string delimiter for [argv]
 	-k [pass]    Use the string [pass] as AES key
 	-K [file]    Use the file [file] as AES key
 	-i [file]    Read input from [file] instead of stdin
