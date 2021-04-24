@@ -7,12 +7,12 @@
 
 #define SNC_EARGV -1
 #define SNC_ECONN -2
-#define SNC_EPROC -3
-#define SNC_ETERM -4
-#define SNC_EAUTH -5
-#define SNC_ESYNC -6
-#define SNC_ETIME -7
-#define SNC_ECRPT -8
+#define SNC_EAUTH -3
+#define SNC_ESYNC -4
+#define SNC_ECRPT -5
+#define SNC_ETIME -6
+#define SNC_ETERM -7
+#define SNC_EPROC -8
 
 #define SNC_ARG_MAX 16
 #define SNC_KEY_MAX 4096
