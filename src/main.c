@@ -406,6 +406,12 @@ int main(int argc, char **argv)
 		goto close_io;
 	}
 
+	// Initialize server socket
+	if (srv.port && (ret = srv_init(&srv)) != 0) {
+		snc_perr("srv_init");
+		goto close_io;
+	}
+
 	if (opts.fork) {
 		if ((pid = fork()) < 0) {
 			snc_perr("fork");
@@ -419,12 +425,6 @@ int main(int argc, char **argv)
 			snc_perr("setsid");
 			goto close_io;
 		}
-	}
-
-	// Initialize server socket
-	if (srv.port && (ret = srv_init(&srv)) != 0) {
-		snc_perr("srv_init");
-		goto close_io;
 	}
 
 	// Initialize connection
