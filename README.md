@@ -8,7 +8,7 @@ complex for simpler use cases (specially during pentests) and easily fingerprint
 Motivated by that, this tool aims to combine the best of each in a single place, from simple raw
 data channels to fully interactive TTY reverse shells. Connections are encrypted with AES-128 by
 default but another key size can be set in `src/include/aes.h`. More on `snc`'s inner workings are
-detailed in `doc/PROTOCOL.md` for those interested.
+detailed [here](https://github.com/hiatus/snc/blob/main/doc/PROTOCOL.md) for those interested.
 
 
 Compilation
