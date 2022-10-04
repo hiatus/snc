@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -17,6 +18,7 @@ struct SNCOptions {
 
 	bool raw;
 	bool tty;
+	bool fork;
 	bool verbose;
 	bool use_dns;
 
@@ -32,10 +34,11 @@ struct SNCOptions {
 static struct SNCOptions opts = {
 	.raw = false,
 	.tty = false,
+	.fork = false,
 	.verbose = false,
 	.use_dns = true,
 
-	.argc = 0,
+	.argc = 0
 };
 
 static struct ServerInfo srv = {
@@ -58,6 +61,7 @@ static const char banner[] =
 "	-v           display connection information\n"
 "	-n           disable DNS resolution\n"
 "	-r           set terminal to raw mode during the connection\n"
+"	-f           fork before connecting\n"
 "	-e [argv]    execute [argv] and pipe it's IO to the connection socket\n"
 "	-E [argv]    execute [argv] in a TTY and pipe it's IO to the connection socket\n"
 "	-d [char]    use [char] as string delimiter for [argv]\n"
@@ -83,6 +87,8 @@ int main(int argc, char **argv)
 {
 	int opt;
 	int ret = 0;
+
+	pid_t pid;
 
 	bool key_parsed = false;
 
@@ -111,7 +117,7 @@ int main(int argc, char **argv)
 	memset(conn.addr, 0x00, NET_MAX_IPV4 + 1);
 
 	// Parse arguments
-	while ((opt = getopt(argc, argv, ":hvnre:E:d:k:K:i:o:w:")) != -1) {
+	while ((opt = getopt(argc, argv, ":hvnref:E:d:k:K:i:o:w:")) != -1) {
 		switch (opt) {
 			case 'h':
 				ret = 0;
@@ -129,6 +135,10 @@ int main(int argc, char **argv)
 
 			case 'r':
 				opts.raw = true;
+				break;
+
+			case 'f':
+				opts.fork = true;
 				break;
 
 			case 'e':
@@ -303,6 +313,22 @@ int main(int argc, char **argv)
 	if (srv.port && (ret = srv_init(&srv))) {
 		snc_perr("srv_init");
 		goto finish;
+	}
+
+	// Fork
+	if (opts.fork) {
+		if ((pid = fork()) < 0) {
+			snc_perr("fork");
+			goto finish;
+		}
+		else
+		if (pid)
+			_exit(0);
+
+		if ((pid = setsid()) < 0) {
+			snc_perr("setsid");
+			goto finish;
+		}
 	}
 
 	// Initialize connection
