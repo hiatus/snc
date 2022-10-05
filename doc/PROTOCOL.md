@@ -1,18 +1,22 @@
 Protocol
 ========
-This document describes `snc`'s inner workings.
+This document describes how `snc` works internally so that it feels safer to use for those who want
+a TLDR instead of going through the source code.
 
 
 Algorithms
 ----------
 ### **AES** ###
 For encryption, `snc` utilizes Rijndael, the AES (Advanced Encryption Standard). The code is a clone
-of [my own AES implementation](https://github.com/hiatus/aes). The default key size is set to 256,
-but it can be safely altered due to the usage of SHA3, which provides flexible digest length.
+of [my own AES implementation](https://github.com/hiatus/aes). The default key size is set to 128 as
+it provides better performance. The key size can be safely altered to 192 or 256 bits, but it should
+be noted that bigger isn't necessarily better; larger AES key sizes exist mostly due to regulations,
+not because they are harder to break. 128 bits are more than enough for today's technology. That
+being said, the AES key size can be changed in `src/include/aes.h`.
 
 ### **SHA3** ###
-The SHA3 algorithm is used for key hashing as it allows for flexible digest length. Because of this,
-the AES key size can be altered in `src/include/aes.h` without any further adjustments.
+The SHA3 algorithm is used for key hashing as it allows for flexible digest length and thus enabling
+the AES key size to be changed without further changes to the source code.
 
 ### **CRC32** ###
 CRC32 is used for packet integrity checking.
