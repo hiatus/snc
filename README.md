@@ -26,6 +26,7 @@ snc [options] [host]? [port]
 	-v           display connection information
 	-n           disable DNS resolution
 	-r           set terminal to raw mode during the connection
+	-f           fork before connecting
 	-e [argv]    execute [argv] and pipe it's IO to the connection socket
 	-E [argv]    execute [argv] in a TTY and pipe it's IO to the connection socket
 	-d [char]    use [char] as string delimiter for [argv]
