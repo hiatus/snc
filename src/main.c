@@ -23,6 +23,7 @@ struct SNCOptions {
 	bool use_dns;
 
 	size_t argc;
+	size_t port;
 
 	char delim[2];
 	char *argv [SNC_MAX_ARGV + 1];
@@ -38,7 +39,8 @@ static struct SNCOptions opts = {
 	.verbose = false,
 	.use_dns = true,
 
-	.argc = 0
+	.argc = 0,
+	.port = 0
 };
 
 static struct ServerInfo srv = {
@@ -286,20 +288,24 @@ int main(int argc, char **argv)
 			strncpy(conn.addr, argv[optind], NET_MAX_IPV4);
 		}
 
-		if (! (conn.port = (uint16_t)strtoul(argv[++optind], NULL, 10))) {
+		if (! (opts.port = strtoul(argv[++optind], NULL, 10)) || opts.port > 65535) {
 			ret = SNC_EARGS;
 			snc_err_fmt("Invalid port: '%s'\n", argv[optind]);
 
 			goto finish;
 		}
+
+		conn.port = (uint16_t)opts.port;
 	}
 	else {
-		if (! (srv.port = (uint16_t)strtoul(argv[optind], NULL, 10))) {
+		if (! (opts.port = strtoul(argv[optind], NULL, 10)) || opts.port > 65535) {
 			ret = SNC_EARGS;
 			snc_err_fmt("Invalid port: '%s'\n", argv[optind]);
 
 			goto finish;
 		}
+
+		srv.port = (uint16_t)opts.port;
 	}
 
 	if (! key_parsed) {
