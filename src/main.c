@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	memset(conn.addr, 0x00, NET_MAX_IPV4 + 1);
 
 	// Parse arguments
-	while ((opt = getopt(argc, argv, ":hvnref:E:d:k:K:i:o:w:")) != -1) {
+	while ((opt = getopt(argc, argv, ":hvnrefE:d:k:K:i:o:w:")) != -1) {
 		switch (opt) {
 			case 'h':
 				ret = 0;
