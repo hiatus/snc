@@ -15,7 +15,6 @@
 #include <sys/wait.h>
 
 struct SNCOptions {
-
 	bool raw;
 	bool tty;
 	bool fork;
@@ -467,6 +466,9 @@ finish:
 
 	if (srv.fd > 0)
 		close(srv.fd);
+
+	if (opts.verbose)
+		snc_msg("Connection closed\n");
 
 	if (opts.raw)
 		putchar('\r');
